@@ -13,6 +13,7 @@ import Map from "./Map";
 function App() {
   const [countries, setCountries] = useState([]);
   const [country, setCountry] = useState("worldwide");
+  const [countryInfo, setCountryInfo] = useState({});
   // https://disease.sh/v3/covid-19/countries
 
   //useEFfect it runs a piece of code based on a given conditon
@@ -33,10 +34,36 @@ function App() {
     getCountriesData();
   }, []);
 
+  useEffect(() => {
+    fetch("https://disease.sh/v3/covid-19/all")
+      .then((response) => response.json())
+      .then((data) => {
+        setCountryInfo(data);
+      });
+  }, []);
   const onCountryChange = async (e) => {
     const countryCode = e.target.value;
     setCountry(countryCode);
+
+    // "https://disease.sh/v3/covid-19/countries/[COUNTRY_CODE]
+    //"https://disease.sh/v3/covid-19/a;;
+
+    const url =
+      countryCode === "worldwide"
+        ? "https://disease.sh/v3/covid-19/all"
+        : `https://disease.sh/v3/covid-19/countries/${countryCode}`;
+
+    await fetch(url)
+      .then((response) => response.json())
+      .then((data) => {
+        setCountry(countryCode);
+
+        //All of the data from the country response
+        setCountryInfo(data);
+      });
   };
+
+  console.log("inffooo", countryInfo);
 
   return (
     <div className="app">
@@ -57,9 +84,21 @@ function App() {
           </FormControl>
         </div>
         <div className="app__stats">
-          <InfoBox title="Coronavirus cases" total={2000} cases={122} />
-          <InfoBox title="Recovered" total={3000} cases={111} />
-          <InfoBox title="Deaths" total={100} cases={5} />
+          <InfoBox
+            title="Coronavirus cases"
+            total={countryInfo.cases}
+            cases={countryInfo.todayCases}
+          />
+          <InfoBox
+            title="Recovered"
+            total={countryInfo.recovered}
+            cases={countryInfo.todayRecovered}
+          />
+          <InfoBox
+            title="Deaths"
+            total={countryInfo.todayDeaths}
+            cases={countryInfo.deaths}
+          />
         </div>
 
         <Map />
